@@ -14,7 +14,7 @@ interface RequestBody {
 function verifyEthereumSignature(message: string, signature: string, address: string): boolean {
     try {
         // Recover the address from the signature
-        const recoveredAddress = ethers.verifyMessage(message, signature);
+        const recoveredAddress = ethers.utils.verifyMessage(message, signature);
 
         // Check if the recovered address matches the provided address
         return recoveredAddress.toLowerCase() === address.toLowerCase();
