@@ -1,5 +1,4 @@
-import Livepeer from 'livepeer';
-import { createReactClient, studioProvider } from '@livepeer/react';
+import { Livepeer } from 'livepeer';
 
 export function createLivepeerClient() {
     const apiKey = process.env.LIVEPEER_API_KEY || process.env.NEXT_PUBLIC_LIVEPEER_API_KEY;
@@ -9,10 +8,6 @@ export function createLivepeerClient() {
     return new Livepeer({ apiKey });
 }
 
-export const livepeerReactClient = (() => {
-    const apiKey = process.env.LIVEPEER_API_KEY || process.env.NEXT_PUBLIC_LIVEPEER_API_KEY;
-    if (!apiKey) return null;
-    return createReactClient({ provider: studioProvider({ apiKey }) });
-})();
+// Note: React client utilities removed for current dependency versions.
 
 

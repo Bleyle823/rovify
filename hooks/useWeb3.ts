@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { BrowserProvider, JsonRpcSigner } from 'ethers';
+import { ethers } from 'ethers';
 
 // Define the window ethereum extension for TypeScript
 declare global {
@@ -12,8 +12,8 @@ declare global {
 }
 
 interface Web3State {
-    provider: BrowserProvider | null;
-    signer: JsonRpcSigner | null;
+    provider: ethers.providers.Web3Provider | null;
+    signer: ethers.Signer | null;
     address: string | null;
     chainId: number | null;
     isConnected: boolean;
@@ -41,17 +41,17 @@ export function useWeb3() {
                 const savedAddress = localStorage.getItem('walletAddress');
 
                 if (savedAddress && window.ethereum) {
-                    const provider = new BrowserProvider(window.ethereum);
+                    const provider = new ethers.providers.Web3Provider(window.ethereum, 'any');
                     const accounts = await provider.listAccounts();
 
-                    if (accounts.length > 0 && accounts[0].address.toLowerCase() === savedAddress.toLowerCase()) {
-                        const signer = await provider.getSigner();
+                    if (accounts.length > 0 && accounts[0] && accounts[0].toLowerCase() === savedAddress.toLowerCase()) {
+                        const signer = provider.getSigner();
                         const network = await provider.getNetwork();
 
                         setState({
                             provider,
                             signer,
-                            address: accounts[0].address,
+                            address: accounts[0],
                             chainId: Number(network.chainId),
                             isConnected: true,
                             isConnecting: false,
@@ -97,8 +97,8 @@ export function useWeb3() {
 
         const updateState = async (newAddress: string) => {
             try {
-                const provider = new BrowserProvider(window.ethereum);
-                const signer = await provider.getSigner();
+                const provider = new ethers.providers.Web3Provider(window.ethereum, 'any');
+                const signer = provider.getSigner();
                 const network = await provider.getNetwork();
 
                 setState({
@@ -139,10 +139,10 @@ export function useWeb3() {
         try {
             setState(prev => ({ ...prev, isConnecting: true, error: null }));
 
-            const provider = new BrowserProvider(window.ethereum);
+            const provider = new ethers.providers.Web3Provider(window.ethereum, 'any');
             const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
             const address = accounts[0];
-            const signer = await provider.getSigner();
+            const signer = provider.getSigner();
             const network = await provider.getNetwork();
 
             setState({
