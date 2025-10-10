@@ -1,0 +1,61 @@
+/* XMTP Chat Styles */
+.message-bubble {
+  max-width: min(70%, 600px);
+  min-width: 60px;
+  word-wrap: break-word;
+  border-radius: 18px;
+  padding: 8px 12px;
+  margin: 4px 0;
+  display: inline-block;
+  text-align: left;
+  width: fit-content;
+}
+
+.message-bubble-left {
+  background-color: #f3f4f6;
+  align-self: flex-start;
+}
+
+.message-bubble-right {
+  background-color: #2563eb;
+  color: white;
+  align-self: flex-end;
+}
+
+.dark .message-bubble-left {
+  background-color: #374151;
+  color: #f9fafb;
+}
+
+.dark .message-bubble-right {
+  background-color: #1d4ed8;
+  color: white;
+}
+
+.message-actions {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  min-height: 24px; /* 确保有足够的空间，避免布局跳动 */
+}
+
+.message-container:hover .message-actions {
+  opacity: 1;
+}
+
+.message-container {
+  margin-bottom: 4px;
+  transition: all 0.2s ease;
+}
+
+/* 确保操作按钮不会影响消息气泡的对齐 */
+.message-bubble {
+  position: relative;
+  z-index: 1;
+}
+
+@media (max-width: 768px) {
+  .message-bubble {
+    max-width: min(85%, 400px);
+    min-width: 50px;
+  }
+}
