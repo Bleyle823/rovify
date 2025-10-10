@@ -225,7 +225,7 @@ export const signMessageWithBase = async (message: string, address: string): Pro
 // Verify a signature (server-side function, included for completeness)
 export const verifySignature = (message: string, signature: string, address: string): boolean => {
     try {
-        const recoveredAddress = ethers.verifyMessage(message, signature);
+        const recoveredAddress = ethers.utils.verifyMessage(message, signature);
         return recoveredAddress.toLowerCase() === address.toLowerCase();
     } catch (error) {
         console.error('Error verifying signature:', error);
@@ -239,7 +239,7 @@ export const resolveBaseName = async (address: string): Promise<string | null> =
         console.log('Attempting to resolve Base name for address:', address);
 
         // Connect to Base RPC
-        const provider = new ethers.JsonRpcProvider('https://mainnet.base.org');
+        const provider = new ethers.providers.JsonRpcProvider('https://mainnet.base.org');
 
         // Try to resolve a name (this assumes ENS-compatible resolution on Base)
         const name = await provider.lookupAddress(address);
