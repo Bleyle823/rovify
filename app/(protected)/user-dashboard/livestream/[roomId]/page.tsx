@@ -2,7 +2,8 @@
 
 import React from 'react';
 
-export default function UserLivestreamPage({ params }: { params: { roomId: string } }) {
+export default function UserLivestreamPage({ params }: { params: Promise<{ roomId: string }> }) {
+  const { roomId: _roomId } = (React as any).use(params);
   return (
     <div className="min-h-screen flex items-center justify-center p-8">
       <div className="max-w-lg w-full bg-white border border-gray-200 rounded-2xl p-8 text-center">
