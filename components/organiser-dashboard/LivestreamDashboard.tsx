@@ -86,9 +86,20 @@ const LivestreamDashboard = () => {
         try {
             setCreating(true);
             setCreateError(null);
+            // Include auth token so the API route can forward it to the backend for persistence
+            const token = (typeof window !== 'undefined') 
+                ? (localStorage.getItem('rovify_access_token') 
+                    || sessionStorage.getItem('rovify_access_token') 
+                    || localStorage.getItem('auth_token') 
+                    || sessionStorage.getItem('auth_token'))
+                : null;
+
+            const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+            if (token) headers['Authorization'] = `Bearer ${token}`;
+
             const res = await fetch('/api/livepeer/createStream', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers,
                 body: JSON.stringify({ 
                     name: streamName?.trim() || 'Rovify Broadcast', 
                     contractAddress: contractAddress?.trim() || undefined,
@@ -161,7 +172,7 @@ const LivestreamDashboard = () => {
         let playbackId: string | null = null;
         const getPlaybackId = async () => {
             try {
-                const res = await fetch('/api/livepeer/getStreams', { cache: 'no-store' });
+                const res = await fetch('/api/livepeer/getStreams?source=backend', { cache: 'no-store' });
                 const j = await res.json();
                 const found = Array.isArray(j.items) ? j.items.find((i: any) => i?.streamKey === streamKey) : null;
                 playbackId = found?.playbackId || null;
