@@ -5,7 +5,6 @@ import { useEffect, useState, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import RoviLogo from '@/public/images/contents/rovi-logo.png';
-import PasswordConfirmModal from '@/components/PasswordConfirmModal';
 import { useAuth } from '@/context/AuthContext';
 import { getOAuthRedirectUri } from '@/utils/env';
 
@@ -24,10 +23,8 @@ interface User {
 export default function AuthCallbackPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const { login } = useAuth();
+    const { loginWithOAuth } = useAuth();
     const [error, setError] = useState<string | null>(null);
-    const [showPasswordModal, setShowPasswordModal] = useState(false);
-    const [userData, setUserData] = useState<User | null>(null);
     const exchangeAttemptedRef = useRef(false);
 
     useEffect(() => {
@@ -114,11 +111,15 @@ export default function AuthCallbackPage() {
                     name: userDataResponse.name || 'N/A'
                 });
 
-                // Store user data for the password confirmation
-                setUserData(userDataResponse);
-
-                // Show password confirmation modal
-                setShowPasswordModal(true);
+                // Call backend to create/login user and get JWT tokens
+                await loginWithOAuth({
+                    googleId: userDataResponse.id,
+                    email: userDataResponse.email,
+                    name: userDataResponse.name,
+                    profilePicture: userDataResponse.profilePicture,
+                    accessToken: userDataResponse.accessToken,
+                    idToken: userDataResponse.idToken,
+                });
 
             } catch (error) {
                 console.error('Authentication callback error:', error);
@@ -130,54 +131,7 @@ export default function AuthCallbackPage() {
         if (searchParams && !exchangeAttemptedRef.current) {
             handleCallback();
         }
-    }, [searchParams, router]);
-
-    // Handle password confirmation
-    const handlePasswordConfirm = async (password: string) => {
-        if (!userData) {
-            setError('User data is missing. Please try logging in again.');
-            setTimeout(() => router.push('/auth/login'), 3000);
-            return;
-        }
-
-        try {
-            // Verify password with your backend
-            const response = await fetch('/api/auth/verify-password', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    email: userData.email || '',
-                    password
-                })
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || 'Invalid password');
-            }
-
-            // If verification successful, complete the login process
-            await login(userData.email || '', password);
-
-            // Set auth cookies
-            document.cookie = `rovify-auth-token=${userData.id}; path=/; secure; samesite=strict; max-age=${60 * 60 * 24 * 7}`; // 7 days
-            console.log('Auth token set in cookie');
-
-            // Redirect to home
-            console.log('Authentication successful, redirecting to home');
-            window.history.replaceState({}, document.title, window.location.pathname);
-            router.push('/home');
-        } catch (error) {
-            // Password verification failed, throw error to be handled by the modal
-            throw error;
-        }
-    };
-
-    // Handle cancellation of password verification
-    const handleCancel = () => {
-        // Redirect back to login
-        router.push('/auth/login');
-    };
+    }, [searchParams, router, loginWithOAuth]);
 
     if (error) {
         return (
@@ -226,15 +180,6 @@ export default function AuthCallbackPage() {
                     </p>
                 </div>
             </div>
-
-            {/* Password confirmation modal */}
-            {showPasswordModal && userData && (
-                <PasswordConfirmModal
-                    email={userData.email || ''}
-                    onConfirmAction={handlePasswordConfirm}
-                    onCancelAction={handleCancel}
-                />
-            )}
         </>
     );
 }

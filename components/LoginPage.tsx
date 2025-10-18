@@ -123,6 +123,10 @@ export default function LoginPage() {
 
   const handleBaseLogin = async () => {
     try {
+      if (!walletAvailable) {
+        setError('Wallet not available. Please install MetaMask or another Web3 wallet to continue.');
+        return;
+      }
       setError('');
       const result = await authenticateWithBase('/home');
       if (!result.success && baseError) {
@@ -499,24 +503,23 @@ export default function LoginPage() {
               </motion.button>
 
               {/* Base */}
-              {walletAvailable && (
-                <motion.button
-                  onClick={handleBaseLogin}
-                  disabled={isLoading || isBaseLoading}
-                  whileHover={{ scale: 1.02, y: -2 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="flex-1 flex items-center justify-center gap-2.5 py-3.5 px-4 bg-white border-2 border-gray-100 rounded-tr-2xl rounded-bl-2xl hover:border-gray-200 hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <Image
-                    src={BaseIcon}
-                    alt="Base"
-                    width={18}
-                    height={18}
-                    className="object-contain"
-                  />
-                  <span className="font-semibold text-gray-700 text-sm">Base</span>
-                </motion.button>
-              )}
+              <motion.button
+                onClick={handleBaseLogin}
+                disabled={isLoading || isBaseLoading || !walletAvailable}
+                whileHover={{ scale: 1.02, y: -2 }}
+                whileTap={{ scale: 0.98 }}
+                className="flex-1 flex items-center justify-center gap-2.5 py-3.5 px-4 bg-white border-2 border-gray-100 rounded-tr-2xl rounded-bl-2xl hover:border-gray-200 hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                title={!walletAvailable ? 'No wallet detected. Install MetaMask to continue.' : undefined}
+              >
+                <Image
+                  src={BaseIcon}
+                  alt="Base"
+                  width={18}
+                  height={18}
+                  className="object-contain"
+                />
+                <span className="font-semibold text-gray-700 text-sm">Base</span>
+              </motion.button>
             </div>
 
             {/* Sign Up Link */}

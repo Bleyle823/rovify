@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 // import Link from 'next/link';
 import Image from 'next/image';
 import { useForm } from 'react-hook-form';
+import { eventsV2Api } from '@/lib/api-client';
 import { getCurrentUser } from '@/mocks/data/users';
 import { EventCategory, User } from '@/types';
 import Header from '@/components/Header';
@@ -78,12 +79,38 @@ export default function CreateEventPage() {
     // Form submission handler
     const onSubmit = async (data: EventFormData) => {
         setIsSubmitting(true);
-
-        // Simulate API call delay
-        setTimeout(() => {
-            setIsSubmitting(false);
+        try {
+            const payload = {
+                title: data.title,
+                description: data.description,
+                category: data.category,
+                subcategory: data.subcategory,
+                date: data.date,
+                time: data.time,
+                endDateOnly: data.endDate,
+                endTime: data.endTime,
+                locationName: data.locationName,
+                locationAddress: data.locationAddress,
+                locationCity: data.locationCity,
+                currency: data.currency,
+                minPrice: data.minPrice,
+                maxPrice: data.maxPrice,
+                totalTickets: data.totalTickets,
+                hasNftTickets: data.hasNftTickets,
+                tags: data.tags,
+                image: data.image,
+                // Optionals for future enhancements
+                isPublic: true,
+            };
+            const result = await eventsV2Api.create(payload);
+            if (result?.error) throw new Error(result.error);
             router.push('/success?type=event');
-        }, 2000);
+        } catch (e: any) {
+            console.error('Create event failed:', e);
+            alert(e?.message || 'Failed to create event');
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     // Navigation functions
