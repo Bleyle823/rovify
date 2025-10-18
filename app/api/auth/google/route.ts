@@ -99,18 +99,15 @@ export async function POST(request: NextRequest) {
         const googleUser: GoogleUserInfo = await userInfoResponse.json();
         console.log('Google user profile retrieved:', googleUser.email);
 
-        // In a real application, you would:
-        // 1. Check if the user exists in your database
-        // 2. Create the user if they don't exist
-        // 3. Generate a session or JWT token
-
-        // For this example, we'll just return the user data
+        // Return user data with tokens for backend authentication
         return NextResponse.json({
             id: `google-${googleUser.id}`,
             email: googleUser.email,
             name: googleUser.name,
             profilePicture: googleUser.picture,
             authMethod: 'google',
+            accessToken: tokens.access_token,
+            idToken: tokens.id_token,
             expiresAt: Date.now() + tokens.expires_in * 1000
         });
 

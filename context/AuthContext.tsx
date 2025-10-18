@@ -26,6 +26,7 @@ interface AuthContextType {
     login: (email: string, password: string) => Promise<void>;
     loginWithProvider: (provider: 'google' | 'github') => Promise<void>;
     loginWithWallet: (userData: User) => Promise<void>;
+    loginWithOAuth: (googleData: { googleId: string; email: string; name?: string; profilePicture?: string; accessToken: string; idToken: string }) => Promise<void>;
     logout: () => Promise<void>;
     register: (name: string, email: string, password: string) => Promise<void>;
 }
@@ -345,6 +346,61 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
         }
     };
 
+    // OAuth login (Google)
+    const loginWithOAuth = async (googleData: { 
+        googleId: string; 
+        email: string; 
+        name?: string; 
+        profilePicture?: string; 
+        accessToken: string; 
+        idToken: string 
+    }): Promise<void> => {
+        console.log('🔐 AUTH: OAuth login attempt with Google for', googleData.email);
+        setIsLoading(true);
+
+        try {
+            const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+            const resp = await fetch(`${backendUrl}/auth/google`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(googleData)
+            });
+
+            const raw = await resp.json();
+            if (!resp.ok) {
+                throw new Error(raw?.message || raw?.error || 'Google authentication failed');
+            }
+
+            const { user: backendUser, accessToken, refreshToken } = raw;
+
+            // Persist tokens for subsequent API calls
+            if (typeof window !== 'undefined') {
+                localStorage.setItem('rovify_access_token', accessToken);
+                localStorage.setItem('rovify_refresh_token', refreshToken);
+            }
+
+            const mappedUser: User = {
+                id: backendUser?.id?.toString?.() || 'user',
+                email: backendUser?.email || googleData.email,
+                name: backendUser?.name || googleData.name,
+                image: backendUser?.avatar || googleData.profilePicture,
+                authMethod: 'google',
+                role: backendUser?.role || 'attendee',
+                verified: backendUser?.isVerified ?? true,
+            };
+
+            setUser(mappedUser);
+            setIsAuthenticated(true);
+            console.log('🔐 AUTH: Google login successful');
+            router.push('/home');
+        } catch (error) {
+            console.error('🔐 AUTH ERROR: OAuth login failed', error);
+            throw new Error(error instanceof Error ? error.message : 'Google authentication failed');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     // Logout
     const logout = async (): Promise<void> => {
         console.log('🔐 AUTH: Logging out user', user?.email || user?.walletAddress || user?.id);
@@ -366,6 +422,7 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
             login,
             loginWithProvider,
             loginWithWallet,
+            loginWithOAuth,
             logout,
             register
         }}>

@@ -20,6 +20,7 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "gateway.pinata.cloud", pathname: "/**" },
       { protocol: "https", hostname: "ipfs.io", pathname: "/**" },
       { protocol: "https", hostname: "cloudflare-ipfs.com", pathname: "/**" },
+      { protocol: "https", hostname: "lh3.googleusercontent.com", pathname: "/**" },
       { protocol: "http", hostname: "localhost", port: "3000", pathname: "/uploads/**" },
       { protocol: "http", hostname: "127.0.0.1", port: "3000", pathname: "/uploads/**" },
     ],

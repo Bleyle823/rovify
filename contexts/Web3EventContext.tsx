@@ -257,7 +257,51 @@ export const Web3EventProvider: React.FC<Web3EventProviderProps> = ({ children }
       });
 
       console.log('Event created successfully:', result);
-      
+
+      // Also record in backend (events_v2) for organiser dashboard
+      try {
+        const startIso = new Date(Number(eventData.startTime || Date.now())).toISOString();
+        const endIso = new Date(Number(eventData.endTime || Date.now() + 86400000)).toISOString();
+        const txHash = (result && (result.hash || (result.transactionHash as string))) || undefined;
+
+        const backendPayload = {
+          title: eventData.name || '',
+          description: eventData.description || '',
+          category: undefined,
+          subcategory: undefined,
+          startDate: startIso,
+          endDate: endIso,
+          locationName: eventData.location || undefined,
+          locationAddress: undefined,
+          locationCity: undefined,
+          currency: 'USD',
+          minPrice: 0,
+          maxPrice: 0,
+          totalTickets: Number(eventData.maxAttendees || 0),
+          hasNftTickets: true,
+          tags: eventData.tags || [],
+          image: eventData.imageUrl || undefined,
+          isPublic: true,
+          txHash,
+        };
+
+        const token = typeof window !== 'undefined' ? localStorage.getItem('rovify_access_token') : null;
+        const res = await fetch('/api/events-v2', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify(backendPayload),
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({} as any));
+          console.warn('Failed to record event in backend (v2):', err?.error || res.statusText);
+        }
+      } catch (e) {
+        console.warn('Error syncing event to backend (v2):', e);
+      }
+
       // Reload events after creation
       await loadEvents();
       

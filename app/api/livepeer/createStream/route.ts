@@ -54,24 +54,26 @@ export async function POST(req: Request) {
 
     // Fire-and-forget: notify backend to persist livestream entry
     try {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000/api/v1';
-      const organiserUserId = (body?.organiserUserId as string | undefined) || undefined;
-      await fetch(`${backendUrl}/livestreams`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name,
-          creatorUserId: organiserUserId || creatorUserId,
-          platform: 'livepeer',
-          streamKey: streamKey || undefined,
-          livepeerStreamId: stream?.id || undefined,
-          playbackId: playbackId || undefined,
-          status: 'starting',
-          isActive: false,
-          isHealthy: true,
-          suspended: false
-        })
-      }).catch(() => undefined);
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+      if (backendUrl) {
+        const organiserUserId = (body?.organiserUserId as string | undefined) || undefined;
+        await fetch(`${backendUrl}/livestreams`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name,
+            creatorUserId: organiserUserId || creatorUserId,
+            platform: 'livepeer',
+            streamKey: streamKey || undefined,
+            livepeerStreamId: stream?.id || undefined,
+            playbackId: playbackId || undefined,
+            status: 'starting',
+            isActive: false,
+            isHealthy: true,
+            suspended: false
+          })
+        }).catch(() => undefined);
+      }
     } catch {}
 
     return NextResponse.json({ id: stream?.id, streamKey, playbackId });
