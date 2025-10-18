@@ -755,7 +755,36 @@ interface LiveStream {
     thumbnail: string;
     createdAt: string;
     status: string;
+    isActive?: boolean;
+    viewerCount?: number;
 }
+
+// Utility functions for livestream status
+const getStreamStatusColor = (status: string) => {
+    switch (status?.toLowerCase()) {
+        case 'live': return 'bg-red-500 text-white';
+        case 'starting': return 'bg-yellow-500 text-white';
+        case 'ending': return 'bg-orange-500 text-white';
+        case 'ended': return 'bg-gray-500 text-white';
+        case 'scheduled': return 'bg-blue-500 text-white';
+        case 'failed': return 'bg-red-600 text-white';
+        case 'canceled': return 'bg-gray-600 text-white';
+        default: return 'bg-red-500 text-white';
+    }
+};
+
+const getStreamStatusLabel = (status: string) => {
+    switch (status?.toLowerCase()) {
+        case 'live': return 'LIVE';
+        case 'starting': return 'STARTING';
+        case 'ending': return 'ENDING';
+        case 'ended': return 'ENDED';
+        case 'scheduled': return 'SCHEDULED';
+        case 'failed': return 'FAILED';
+        case 'canceled': return 'CANCELED';
+        default: return 'LIVE';
+    }
+};
 
 // Main Component
 export default function HomePage() {
@@ -785,7 +814,7 @@ export default function HomePage() {
     useEffect(() => {
         const loadStreams = async () => {
             try {
-                const res = await fetch('/api/livepeer/getStreams', { cache: 'no-store' });
+                const res = await fetch('/api/livepeer/getStreams?source=backend', { cache: 'no-store' });
                 const data = await res.json();
                 setLiveStreams(Array.isArray(data.items) ? data.items : []);
             } catch (error) {
@@ -1106,6 +1135,77 @@ const LocalSidebar = () => {
                                 </div>
                                 </div>
 
+                            {/* Live Now - Streams from backend */}
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.6, delay: 0.25 }}
+                                className="mb-10"
+                            >
+                                <div className="flex items-center justify-between mb-6">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-8 h-8 bg-red-500/10 rounded-lg flex items-center justify-center">
+                                            <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                                        </div>
+                                        <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Live Now</h2>
+                                        <span className="text-xs font-semibold text-red-600 bg-red-100 px-2 py-0.5 rounded-full">LIVE</span>
+                                    </div>
+                                    <Link href="/user-dashboard/livestream" className="text-[#FF5900] text-sm font-semibold flex items-center gap-1 hover:gap-2 transition-all">
+                                        See all
+                                        <FiChevronRight className="w-4 h-4" />
+                                    </Link>
+                                </div>
+                                {liveStreams.length === 0 ? (
+                                    <div className="text-center py-10 text-gray-500 text-sm border border-dashed border-gray-200 rounded-2xl">
+                                        No live streams at the moment
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-5">
+                                        {liveStreams.slice(0, 8).map((stream, index) => (
+                                            <motion.div
+                                                key={stream.id}
+                                                initial={{ opacity: 0, y: 20 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                transition={{ duration: 0.4, delay: 0.05 * index }}
+                                            >
+                                                <Link href={`/watch/${stream.playbackId}`}>
+                                                    <div className="group bg-white rounded-2xl border border-gray-200 hover:border-gray-300 transition-all duration-200 overflow-hidden cursor-pointer shadow-sm">
+                                                        <div className="relative h-44 overflow-hidden bg-gray-100">
+                                                            <Image
+                                                                src={stream.thumbnail || 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&h=450&fit=crop'}
+                                                                alt={stream.name}
+                                                                fill
+                                                                className="object-cover group-hover:scale-105 transition-transform duration-300"
+                                                            />
+                                                            <div className="absolute top-3 left-3 flex items-center gap-2">
+                                                                <span className={`text-[10px] font-semibold px-2.5 py-1 rounded-full flex items-center gap-1 ${getStreamStatusColor(stream.status)}`}>
+                                                                    {stream.status?.toLowerCase() === 'live' && <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />}
+                                                                    {getStreamStatusLabel(stream.status)}
+                                                                </span>
+                                                                <span className="bg-white/90 text-gray-900 text-[10px] font-semibold px-2 py-1 rounded-full">
+                                                                    {new Date(stream.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                        <div className="p-4">
+                                                            <h3 className="font-semibold text-gray-900 mb-1 line-clamp-1">{stream.name || 'Live Stream'}</h3>
+                                                            <div className="flex items-center justify-between text-xs text-gray-600">
+                                                                <span className="flex items-center gap-1">
+                                                                    <FiVideo className="w-3.5 h-3.5" /> Livestream
+                                                                </span>
+                                                                <span className="px-2 py-0.5 rounded-full bg-gray-100 text-gray-700 font-medium">
+                                                                    {stream.status || 'live'}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </Link>
+                                            </motion.div>
+                                        ))}
+                                    </div>
+                                )}
+                            </motion.div>
+
                             {/* Popular Events */}
                             <motion.div
                                 initial={{ opacity: 0, y: 20 }}
@@ -1188,7 +1288,7 @@ const LocalSidebar = () => {
                                     </div>
                                 ) : (
                                     liveStreams.slice(0, 3).map((stream, index) => (
-                                        <Link key={stream.id} href={`/user-dashboard/livestream/watch/${stream.playbackId}`}>
+                                        <Link key={stream.id} href={`/watch/${stream.playbackId}`}>
                                 <motion.div 
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
@@ -1207,9 +1307,9 @@ const LocalSidebar = () => {
                                     </div>
                                     <div className="relative p-4 h-full flex flex-col justify-end">
                                         <div className="flex items-center gap-2 mb-2">
-                                            <span className="bg-red-500 text-white text-xs px-2.5 py-1 rounded-full font-semibold flex items-center gap-1">
-                                                <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></div>
-                                                LIVE
+                                            <span className={`text-xs px-2.5 py-1 rounded-full font-semibold flex items-center gap-1 ${getStreamStatusColor(stream.status)}`}>
+                                                {stream.status?.toLowerCase() === 'live' && <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></div>}
+                                                {getStreamStatusLabel(stream.status)}
                                             </span>
                                                         <span className="text-white/80 text-xs font-medium">
                                                             {new Date(stream.createdAt).toLocaleDateString()}
