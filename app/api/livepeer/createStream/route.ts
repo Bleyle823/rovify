@@ -54,10 +54,16 @@ export async function POST(req: Request) {
 
     // Fire-and-forget: notify backend to persist livestream entry
     try {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
-      if (backendUrl) {
+      const rawBase = (process.env.NEXT_PUBLIC_BACKEND_URL || '').replace(/\/$/, '');
+      const backendBase = rawBase
+        ? (rawBase.includes('/api/') ? rawBase : `${rawBase}/api/v1`)
+        : '';
+      if (backendBase) {
+        // Forward Authorization header if present (so backend can authenticate)
+        const authHeader = req.headers.get('authorization') || undefined;
         const organiserUserId = (body?.organiserUserId as string | undefined) || undefined;
-        await fetch(`${backendUrl}/livestreams`, {
+        const url = `${backendBase}/livestreams`;
+        const init: RequestInit = {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -71,8 +77,22 @@ export async function POST(req: Request) {
             isActive: false,
             isHealthy: true,
             suspended: false
-          })
-        }).catch(() => undefined);
+          }),
+        };
+        if (authHeader) {
+          (init.headers as Record<string, string>)['Authorization'] = authHeader;
+        }
+        const resp = await fetch(url, init).catch((e) => {
+          console.error('Backend livestream create request failed to send:', e);
+          return undefined;
+        });
+        // Optional: log a non-2xx response for visibility
+        try {
+          if (resp && !resp.ok) {
+            const txt = await resp.text();
+            console.error('Backend livestream create failed:', resp.status, url, txt);
+          }
+        } catch {}
       }
     } catch {}
 
