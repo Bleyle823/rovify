@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, forwardRef, type CSSProperties, type PropsWithChildren } from 'react';
+import { useParams } from 'next/navigation';
 import * as Player from '@livepeer/react/player';
 import {
   LoadingIcon,
@@ -17,8 +18,11 @@ import Link from 'next/link';
 
 type Src = Parameters<typeof Player.Root>[0]['src'];
 
-export default function WatchStream({ params }: { params: Promise<{ playbackId: string }> }) {
-  const { playbackId } = (React as any).use(params);
+export const dynamic = 'force-dynamic';
+
+export default function WatchStream() {
+  const routeParams = useParams() as { playbackId?: string };
+  const playbackId = routeParams?.playbackId || '';
   const [src, setSrc] = useState<Src>(null);
   const [error, setError] = useState<string | null>(null);
   const [canView, setCanView] = useState<boolean>(false);
