@@ -71,9 +71,14 @@ export const eventsApi = {
 
   async create(eventData: any) {
     try {
+      // Attempt to forward Authorization if available
+      const token = typeof window !== 'undefined' ? localStorage.getItem('rovify_access_token') : null;
       const response = await fetch('/api/events', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify(eventData),
       });
 
@@ -87,6 +92,31 @@ export const eventsApi = {
     } catch (error) {
       console.error('Create event error:', error);
       return { error: error instanceof Error ? error.message : 'Failed to create event' };
+    }
+  },
+};
+
+export const eventsV2Api = {
+  async create(eventData: any) {
+    try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('rovify_access_token') : null;
+      const response = await fetch('/api/events-v2', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify(eventData),
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to create event (v2)');
+      }
+      const data = await response.json();
+      return { data };
+    } catch (error) {
+      console.error('Create event v2 error:', error);
+      return { error: error instanceof Error ? error.message : 'Failed to create event (v2)' };
     }
   },
 };
