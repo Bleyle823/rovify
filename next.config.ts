@@ -21,6 +21,10 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "ipfs.io", pathname: "/**" },
       { protocol: "https", hostname: "cloudflare-ipfs.com", pathname: "/**" },
       { protocol: "https", hostname: "lh3.googleusercontent.com", pathname: "/**" },
+      // Livepeer playback/thumbnail hosts
+      { protocol: "https", hostname: "recordings-cdn-s.lp-playback.studio", pathname: "/**" },
+      { protocol: "https", hostname: "livepeercdn.studio", pathname: "/**" },
+      { protocol: "https", hostname: "image.livepeer.studio", pathname: "/**" },
       { protocol: "http", hostname: "localhost", port: "3000", pathname: "/uploads/**" },
       { protocol: "http", hostname: "127.0.0.1", port: "3000", pathname: "/uploads/**" },
     ],

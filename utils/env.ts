@@ -52,6 +52,11 @@ export const getOAuthRedirectUri = (provider: 'google' | 'base' | 'metamask'): s
 
     switch (provider) {
         case 'google':
+            // Allow explicit override to avoid Google redirect_uri_mismatch
+            // Must exactly match the value configured in Google Cloud Console
+            if (process.env.NEXT_PUBLIC_GOOGLE_REDIRECT_URI) {
+                return process.env.NEXT_PUBLIC_GOOGLE_REDIRECT_URI.trim();
+            }
             return `${baseUrl}/api/auth/callback/google`;
         case 'base':
             return `${baseUrl}/api/auth/callback/base`;
