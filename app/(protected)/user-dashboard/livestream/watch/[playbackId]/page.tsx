@@ -54,7 +54,7 @@ export default function WatchStream() {
         setSrc(data?.src ?? null);
         // load display details from streams store
         try {
-          const listRes = await fetch('/api/livepeer/getStreams', { cache: 'no-store' });
+          const listRes = await fetch('/api/livepeer/getStreams?source=backend', { cache: 'no-store' });
           const list = await listRes.json();
           const found = Array.isArray(list.items) ? list.items.find((i: any) => i?.playbackId === playbackId) : null;
           if (found) {
